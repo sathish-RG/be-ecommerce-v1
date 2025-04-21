@@ -35,22 +35,18 @@ const authController={
       const { email, password } = req.body;
   
       const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(400).json({ message: 'User does not exist' });
-      }
+      if (!user) return res.status(400).json({ message: 'User does not exist' });
   
       const isPasswordCorrect = await bcrypt.compare(password, user.password);
-      if (!isPasswordCorrect) {
-        return res.status(400).json({ message: 'Wrong Password' });
-      }
+      if (!isPasswordCorrect) return res.status(400).json({ message: 'Wrong Password' });
   
       const token = jwt.sign({ id: user._id }, JWT_SECRET);
   
-      // ✅ Correct cookie setup for frontend (Netlify) to receive the cookie
       res.cookie('token', token, {
         httpOnly: true,
-        secure: true,       // ✅ Must be true for HTTPS (Netlify)
-        sameSite: 'None'    // ✅ Allows cross-origin cookies
+        secure: true,
+        sameSite: 'None',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // optional
       });
   
       res.status(200).json({
@@ -60,12 +56,13 @@ const authController={
           name: user.name,
           email: user.email,
         },
-        token, // optional
+        token,
       });
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
   },
+  
   
   logout:async(req,res)=>{
     try{
