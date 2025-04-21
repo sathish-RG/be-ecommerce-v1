@@ -30,40 +30,43 @@ const authController={
       res.status(500).json({message:err.message});
     }
   },
-  login:async(req,res)=>{
-    try{
-     //get the detailes from the request body
-     const {email, password}=req.body;
-     //check if the user exist
-     const user=await User.findOne({email});
-     //if the user not exist
-     if(!user){
-      return res.status(400).json({message:'User dose not exist'})
-     };
-     //check if the password is correct
-     const isPasswordCorrect=await bcrypt.compare(password, user.password);
-     //if the password is incorrect
-     if(!isPasswordCorrect){
-      return res.status(400).json({message:'Wrong Password'})
-     };
-     //create a tocken
-     const token=jwt.sign({id:user._id},JWT_SECRET)
-     //set the token in the cookies
-     res.cookie('token',token,{httpOnly:true});
-     //return the success message
-     res.status(200).json({
-      message: "User login successfully",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-      },
-      token, // optional if you're using JWT
-    });
-    }catch(err){
-      res.status(500).json({message:err.message});
+  login: async (req, res) => {
+    try {
+      const { email, password } = req.body;
+  
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(400).json({ message: 'User does not exist' });
+      }
+  
+      const isPasswordCorrect = await bcrypt.compare(password, user.password);
+      if (!isPasswordCorrect) {
+        return res.status(400).json({ message: 'Wrong Password' });
+      }
+  
+      const token = jwt.sign({ id: user._id }, JWT_SECRET);
+  
+      // ✅ Correct cookie setup for frontend (Netlify) to receive the cookie
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,       // ✅ Must be true for HTTPS (Netlify)
+        sameSite: 'None'    // ✅ Allows cross-origin cookies
+      });
+  
+      res.status(200).json({
+        message: 'User login successfully',
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+        },
+        token, // optional
+      });
+    } catch (err) {
+      res.status(500).json({ message: err.message });
     }
   },
+  
   logout:async(req,res)=>{
     try{
       //clear the token from cookies
