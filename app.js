@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(morgan('dev'));
 app.use(cors({
-  origin:'https://ecommercev.netlify.app/',
+  origin:'https://ecommercev.netlify.app',
   credentials:true
 }));
 
